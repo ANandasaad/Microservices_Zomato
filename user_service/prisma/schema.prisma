@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT_STAFF
+  DELIVERY_PERSON
+}
+
+enum AuthProvider {
+  EMAIL
+  PHONE
+  GOOGLE
+  FACEBOOK
+}
+
+enum OtpType {
+  EMAIL_VERIFIED
+  PHONE_VERIFIED
+  null
+}
+
+model User {
+  id              Int          @id @default(autoincrement())
+  email           String?      @unique
+  phone           String?      @unique
+  password        String?
+  firstName       String?
+  lastName        String?
+  profileImage    String?
+  isActive        Boolean      @default(true)
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  version         Int          @default(1)
+  role            Role         @default(CUSTOMER)
+  provider        AuthProvider @default(PHONE)
+  socialId        String? // Social provider ID (e.g., Google sub)
+  socialProvider  String? // Social provider name (e.g., "google")
+  isEmailVerified Boolean      @default(false)
+  isPhoneVerified Boolean      @default(false)
+
+  // role specific fields
+  restaurantId String?
+  vehicleType  String?
+  Session      Session[]
+  Otp          Otp[]
+
+  // indexs for faster lookups
+  @@unique([email, isActive], name: "idx_users_active_email")
+  @@unique([phone, isActive], name: "idx_users_active_phone")
+  @@index([email])
+  @@index([phone])
+  @@index([socialId, socialProvider], map: "idx_social_provider")
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceInfo Json
+  ip         String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  userId     Int
+
+  @@index([expiresAt])
+}
+
+model Otp {
+  id           Int      @id @default(autoincrement())
+  otp          String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  userId       Int
+  otpType      OtpType  @default(null)
+  attemptCount Int      @default(0) // Track the number of attempts  
+  lastAttempt  DateTime @default(now()) // Last attempt timestamp 
+
+  @@index([expiresAt])
+  @@index([userId])
+}
