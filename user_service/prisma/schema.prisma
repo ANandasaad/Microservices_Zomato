@@ -15,8 +15,9 @@ datasource db {
 
 enum Role {
   CUSTOMER
-  RESTAURANT_STAFF
-  DELIVERY_PERSON
+  RESTAURANT_OWNER
+  DELIVERY_PARTNER
+  ADMIN
 }
 
 enum AuthProvider {
@@ -24,45 +25,118 @@ enum AuthProvider {
   PHONE
   GOOGLE
   FACEBOOK
+  APPLE
+}
+
+// Enums
+enum RestaurantType {
+  FINE_DINING
+  CAFE
+  QUICK_SERVICE
+  CLOUD_KITCHEN
+}
+
+enum VehicleType {
+  BIKE
+  SCOOTER
+  BICYCLE
+}
+
+enum AddressType {
+  HOME
+  WORK
+  OTHER
+}
+
+enum DocumentType {
+  FSSAI_LICENSE
+  GST_CERTIFICATE
+  RESTAURANT_REGISTRATION
+  OWNER_ID
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
 }
 
 enum OtpType {
-  EMAIL_VERIFIED
-  PHONE_VERIFIED
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
   null
 }
 
-model User {
-  id              Int          @id @default(autoincrement())
-  email           String?      @unique
-  phone           String?      @unique
-  password        String?
-  firstName       String?
-  lastName        String?
-  profileImage    String?
-  isActive        Boolean      @default(true)
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-  version         Int          @default(1)
-  role            Role         @default(CUSTOMER)
-  provider        AuthProvider @default(PHONE)
-  socialId        String? // Social provider ID (e.g., Google sub)
-  socialProvider  String? // Social provider name (e.g., "google")
-  isEmailVerified Boolean      @default(false)
-  isPhoneVerified Boolean      @default(false)
+enum OtpStatus {
+  pending
+  verified
+}
 
+model User {
+  id                     Int                      @id @default(autoincrement())
+  email                  String?                  @unique
+  phone                  String?                  @unique
+  password               String?
+  firstName              String?
+  lastName               String?
+  profileImage           String?
+  dateOfBirth            DateTime?
+  isActive               Boolean                  @default(true)
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime                 @updatedAt
+  version                Int                      @default(1)
+  role                   Role                     @default(CUSTOMER)
+  isEmailVerified        Boolean                  @default(false)
+  isPhoneVerified        Boolean                  @default(false)
+  failedLoginAttempts    Int                      @default(0)
+  accountLockedUntil     DateTime?
+  provider               String?
   // role specific fields
-  restaurantId String?
-  vehicleType  String?
-  Session      Session[]
-  Otp          Otp[]
+  restaurantId           String?
+  vehicleType            String?
+  Session                Session[]
+  Otp                    Otp?
+  CustomerProfile        CustomerProfile[]
+  DeviceToken            DeviceToken[]
+  DeliveryPartnerProfile DeliveryPartnerProfile[]
+  RestaurantProfile      RestaurantProfile[]
+  SocialProvider         SocialProvider[]
 
   // indexs for faster lookups
   @@unique([email, isActive], name: "idx_users_active_email")
   @@unique([phone, isActive], name: "idx_users_active_phone")
   @@index([email])
   @@index([phone])
-  @@index([socialId, socialProvider], map: "idx_social_provider")
+}
+
+model SocialProvider {
+  id             Int          @id @default(autoincrement())
+  user           User         @relation(fields: [userId], references: [id])
+  providerName   AuthProvider @default(PHONE)
+  providerAToken String?
+  lastLogin      DateTime     @default(now())
+  userId         Int
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+}
+
+model Address {
+  id                Int             @id @default(autoincrement())
+  type              AddressType
+  streetAddress     String
+  city              String
+  state             String
+  pinCode           String
+  customer          CustomerProfile @relation(fields: [customerProfileId], references: [id])
+  latitude          Float?
+  longitude         Float?
+  isDefault         Boolean         @default(false)
+  customerProfileId Int
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
 }
 
 model Session {
@@ -77,17 +151,83 @@ model Session {
   @@index([expiresAt])
 }
 
+model DeviceToken {
+  id          Int      @id @default(autoincrement())
+  deviceToken String
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
 model Otp {
-  id           Int      @id @default(autoincrement())
-  otp          String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  userId       Int
-  otpType      OtpType  @default(null)
-  attemptCount Int      @default(0) // Track the number of attempts  
-  lastAttempt  DateTime @default(now()) // Last attempt timestamp 
+  id           Int       @id @default(autoincrement())
+  otp          String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  userId       Int       @unique
+  otpType      OtpType   @default(null)
+  attemptCount Int       @default(0) // Track the number of attempts  
+  lockUntil    DateTime?
+  status       OtpStatus @default(pending)
 
   @@index([expiresAt])
   @@index([userId])
+}
+
+model CustomerProfile {
+  id                 Int       @id @default(autoincrement())
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int
+  dietaryPreferences String[]
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  Address            Address[]
+}
+
+model DeliveryPartnerProfile {
+  id                  Int         @id @default(autoincrement())
+  vehicleType         VehicleType
+  vehicleNumber       String
+  drivingLicense      String
+  user                User        @relation(fields: [userId], references: [id])
+  backgroundVerified  Boolean     @default(false)
+  completedDeliveries Int         @default(0)
+  ratings             Float       @default(0.0)
+  created_at          DateTime    @default(now())
+  userId              Int
+}
+
+// Restaurant Owner Profile
+model RestaurantProfile {
+  id                    Int            @id @default(autoincrement())
+  user                  User           @relation(fields: [userId], references: [id])
+  // Restaurant Details
+  restaurantName        String
+  restaurantType        RestaurantType
+  cuisineTypes          String[]
+  // Legal & Compliance
+  fssaiLicenseNumber    String
+  gstRegistrationNumber String
+  // Business Details
+  seatingCapacity       Int?
+  operatingHours        Json?
+  // Documents
+  Document              Document[]
+  userId                Int
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+}
+
+model Document {
+  id                  Int               @id @default(autoincrement())
+  restaurant          RestaurantProfile @relation(fields: [restaurantProfileId], references: [id])
+  documentType        DocumentType
+  fileUrl             String
+  uploadedAt          DateTime          @default(now())
+  restaurantProfileId Int
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 }

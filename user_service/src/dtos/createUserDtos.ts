@@ -20,7 +20,4 @@ export class CreateUserDto {
   @IsString()
   @MinLength(8)
   password?: string;
-
-  @IsOptional()
-  provider?: AuthProvider = AuthProvider.PHONE;
 }

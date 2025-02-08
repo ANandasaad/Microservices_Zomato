@@ -5,16 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node ./src/app.ts",
-    "dev": "nodemon",
+    "start": "node ./dist/app.js",
+    "dev": "ts-node ./src/app.ts",
+    "dev:watch": "nodemon",
     "build": "tsc",
-    "prisma:generate":"npx prisma generate",
-    "prisma:migrate":"npx prisma migrate dev",
-    "prisma:studio":"npx prisma studio",
-    "prisma:push":"npx prisma db push",
-    "prisma:pull":"npx prisma db pull"
-    
-
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:studio": "npx prisma studio",
+    "prisma:push": "npx prisma db push",
+    "prisma:pull": "npx prisma db pull"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +38,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.3.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "twilio": "^5.4.3"
   }
 }

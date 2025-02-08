@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  user_service:
+    container_name: zomato_user_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:admin@db:5432/zomato
+    depends_on:
+      - db
+    networks:
+      - zomato_net 
+
+  db:  # This should be correctly indented
+    container_name: zomato_db
+    image: postgres:15
+    restart: always
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: zomato
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - zomato_net 
+
+networks:
+  zomato_net:
+    driver: bridge
+
+volumes:
+  pg_data:

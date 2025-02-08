@@ -22,7 +22,10 @@ export const errorHandler = (
     message: err.message || "Internal Server Error",
     statusCode,
     errors: err instanceof HttpError ? err.errors : [],
+    success: false,
   };
 
   res.status(statusCode).json(errorResponse);
+
+  next();
 };

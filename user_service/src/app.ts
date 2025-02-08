@@ -32,20 +32,20 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
   }
 
-  private initializeErrorHandler() {
-    this.app.use(errorHandler);
-  }
   private initializeRoutes() {
     const userRoutes = UserRoutes(this.userController);
 
     this.app.use("/api/v1/user", userRoutes);
+  }
+  private initializeErrorHandler() {
+    this.app.use(errorHandler);
   }
 
   public listen(PORT: number) {
     try {
       this.app
         .listen(PORT, () => {
-          console.log(`Server is running on port ${PORT}`);
+          console.log(`Server is running on port ${PORT || 4000}`);
         })
         .on("error", (error) => {
           console.error("Server startup failed", error);
