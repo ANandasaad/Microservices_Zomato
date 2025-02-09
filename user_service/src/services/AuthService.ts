@@ -5,6 +5,7 @@ import { IUserRepository } from "../interfaces/IUserRepository";
 import { BadRequestError } from "../utils/error";
 import { VerifyPhoneOtp } from "../dtos/verifyPhoneOtp";
 import { verifyOtp } from "../utils/sendOtp";
+import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 
 export class AuthService implements IAuthService {
   constructor(private userRepository: IUserRepository) {}
@@ -65,6 +66,23 @@ export class AuthService implements IAuthService {
       });
 
       return "OTP verified successfully";
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async GoogleSignup(userData: SocialSignupDtos): Promise<any> {
+    try {
+      const user = await this.userRepository.GoogleSignup(userData);
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async SignUpWithEmail(userData: SignUpWithEmailDtos): Promise<any> {
+    try {
+      const user = await this.userRepository.SignUpWithEmail(userData);
+      return user;
     } catch (error) {
       throw error;
     }

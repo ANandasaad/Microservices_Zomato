@@ -1,9 +1,11 @@
 import { CreateUserDto } from "../dtos/createUserDtos";
+import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 import { IAuthService } from "../interfaces/IAuthService";
+import { IUserController } from "../interfaces/IUserController";
 import { IUserRepository } from "../interfaces/IUserRepository";
 import { NextFunction, Request, Response } from "express";
 
-export class UserController {
+export class UserController implements IUserController {
   constructor(
     private authService: IAuthService,
     private userRepository: IUserRepository
@@ -18,9 +20,9 @@ export class UserController {
       const userData: CreateUserDto = req.body;
       const user = await this.authService.registerUserByPhone(userData);
       res.status(201).json({
+        success: true,
         message: "User registered successfully",
         data: user,
-        success: true,
       });
     } catch (error) {
       next(error);
@@ -36,11 +38,52 @@ export class UserController {
       const userData: CreateUserDto = req.body;
       const message = await this.authService.verifyPhoneOtp(userData);
       res.status(200).json({
-        message,
         success: true,
+        message,
       });
     } catch (error) {
       next(error);
     }
   }
+
+  async GoogleSignup(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData: SocialSignupDtos = req.body;
+      const user = await this.authService.GoogleSignup(userData);
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async SignUpWithEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData: SignUpWithEmailDtos = req.body;
+      const response = await this.authService.SignUpWithEmail(userData);
+      res.status(201).json({
+        success: true,
+        message:
+          "User registered successfully, Please verify your email address",
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async AppleSignup(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {}
 }

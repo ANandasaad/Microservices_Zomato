@@ -20,6 +20,12 @@ enum Role {
   ADMIN
 }
 
+enum DietaryType {
+  VEG
+  NON_VEG
+  null
+}
+
 enum AuthProvider {
   EMAIL
   PHONE
@@ -113,14 +119,14 @@ model User {
 }
 
 model SocialProvider {
-  id             Int          @id @default(autoincrement())
-  user           User         @relation(fields: [userId], references: [id])
-  providerName   AuthProvider @default(PHONE)
-  providerAToken String?
-  lastLogin      DateTime     @default(now())
-  userId         Int
-  created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
+  id           Int          @id @default(autoincrement())
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerName AuthProvider @default(PHONE)
+  providerID   String?      @unique
+  lastLogin    DateTime     @default(now())
+  userId       Int
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
 }
 
 model Address {
@@ -178,12 +184,12 @@ model Otp {
 }
 
 model CustomerProfile {
-  id                 Int       @id @default(autoincrement())
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId             Int
-  dietaryPreferences String[]
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
+  id                 Int         @id @default(autoincrement())
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int         @unique
+  dietaryPreferences DietaryType @default(null)
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
   Address            Address[]
 }
 

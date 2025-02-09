@@ -1,6 +1,21 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 export interface IUserController {
-  register(req: Request, res: Response): Promise<void>;
-  verifyPhoneOtp(req: Request, res: Response): Promise<void>;
+  registerByPhone(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void>;
+  VerifyPhoneOtp(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void>;
+  GoogleSignup(req: Request, res: Response, next: NextFunction): Promise<void>;
+  AppleSignup(req: Request, res: Response, next: NextFunction): Promise<void>;
+  SignUpWithEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void>;
 }
