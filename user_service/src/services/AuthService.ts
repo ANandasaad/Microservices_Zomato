@@ -6,6 +6,7 @@ import { BadRequestError } from "../utils/error";
 import { VerifyPhoneOtp } from "../dtos/verifyPhoneOtp";
 import { verifyOtp } from "../utils/sendOtp";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
+import { generateToken } from "../utils/generateToken";
 
 export class AuthService implements IAuthService {
   constructor(private userRepository: IUserRepository) {}
@@ -23,7 +24,7 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.createUser(userData);
     return user;
   }
-  async registerUserByPhone(userData: CreateUserDto): Promise<User> {
+  async registerUserByPhoneOrLogin(userData: CreateUserDto): Promise<User> {
     try {
       if (!userData.phone) {
         throw new BadRequestError("Phone number is required");
@@ -31,10 +32,12 @@ export class AuthService implements IAuthService {
       const existingUser = await this.userRepository.findByPhone(
         userData.phone
       );
+      let user;
       if (existingUser) {
-        throw new BadRequestError("User already exists");
+        user = await this.userRepository.loginByPhone(existingUser);
+      } else {
+        user = await this.userRepository.createUser(userData);
       }
-      const user = await this.userRepository.createUser(userData);
 
       return user;
     } catch (error) {
@@ -42,7 +45,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async verifyPhoneOtp(input: VerifyPhoneOtp): Promise<string> {
+  async verifyPhoneOtp(input: VerifyPhoneOtp): Promise<any> {
     try {
       if (!input.phone) {
         throw new BadRequestError("Phone number is required");
@@ -64,8 +67,15 @@ export class AuthService implements IAuthService {
         userId: existingUser.id,
         status: isOtpVerified ? OtpStatus.verified : OtpStatus.pending,
       });
+      const payload = {
+        userId: existingUser.id,
+      };
+      const token = generateToken(payload);
 
-      return "OTP verified successfully";
+      return {
+        token,
+        existingUser,
+      };
     } catch (error) {
       throw error;
     }

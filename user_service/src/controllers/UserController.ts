@@ -11,17 +11,18 @@ export class UserController implements IUserController {
     private userRepository: IUserRepository
   ) {}
 
-  async registerByPhone(
+  async registerByPhoneOrLogin(
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
       const userData: CreateUserDto = req.body;
-      const user = await this.authService.registerUserByPhone(userData);
+      const user = await this.authService.registerUserByPhoneOrLogin(userData);
       res.status(201).json({
         success: true,
-        message: "User registered successfully",
+        message:
+          "User registered or login successfully, please verify your phone number",
         data: user,
       });
     } catch (error) {
@@ -36,10 +37,11 @@ export class UserController implements IUserController {
   ): Promise<void> {
     try {
       const userData: CreateUserDto = req.body;
-      const message = await this.authService.verifyPhoneOtp(userData);
+      const user = await this.authService.verifyPhoneOtp(userData);
       res.status(200).json({
         success: true,
-        message,
+        message: "Verified phone number successfully",
+        data: user,
       });
     } catch (error) {
       next(error);

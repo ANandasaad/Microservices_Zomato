@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 export interface IUserController {
-  registerByPhone(
+  registerByPhoneOrLogin(
     req: Request,
     res: Response,
     next: NextFunction

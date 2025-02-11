@@ -14,4 +14,5 @@ export interface IUserRepository {
   updatePhoneOtpStatus(user: UpdatePhoneOtpStatus): Promise<string>;
   GoogleSignup(user: SocialSignupDtos): Promise<any>;
   SignUpWithEmail(userData: SignUpWithEmailDtos): Promise<any>;
+  loginByPhone(user: any): Promise<any>;
 }

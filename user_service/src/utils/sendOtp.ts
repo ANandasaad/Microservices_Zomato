@@ -5,7 +5,7 @@ export const sendOtpToPhone = async (phone: number) => {
   try {
     await client.verify.v2
       .services(String(config.twilio_Service_sid))
-      .verifications.create({ to: `+91${phone}`, channel: "whatsapp" })
+      .verifications.create({ to: `+91${phone}`, channel: "sms" })
       .then((verification) => console.log(verification));
   } catch (error) {
     console.log(error);

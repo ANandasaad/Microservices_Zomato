@@ -10,7 +10,7 @@ export const UserRoutes = (userController: UserController) => {
   router.post(
     "/register-phone",
     validateDto(CreateUserDto),
-    userController.registerByPhone.bind(userController)
+    userController.registerByPhoneOrLogin.bind(userController)
   );
   router.post(
     "/verify-otp",

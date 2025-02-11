@@ -13,6 +13,7 @@ import { BadRequestError, NotFoundError } from "../utils/error";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import config from "../config/config";
+import { generateOtp } from "../utils/generateOtp";
 
 const client = new OAuth2Client(config.web_client_id);
 export class PrismaUserRepository implements IUserRepository {
@@ -68,6 +69,41 @@ export class PrismaUserRepository implements IUserRepository {
         throw error;
       }
     });
+  }
+  async loginByPhone(user: any): Promise<any> {
+    try {
+      await sendOtpToPhone(Number(user?.phone));
+      const userOtpExists = await this.prisma.user.findUnique({
+        where: {
+          id: user?.id,
+        },
+        include: {
+          Otp: true,
+        },
+      });
+      if (userOtpExists?.Otp) {
+        await this.prisma.otp.update({
+          where: {
+            id: userOtpExists?.Otp.id,
+          },
+          data: {
+            userId: user.id,
+            otpType: OtpType.PHONE_VERIFICATION,
+          },
+        });
+      } else {
+        await this.prisma.otp.create({
+          data: {
+            userId: user.id,
+            otpType: OtpType.PHONE_VERIFICATION,
+          },
+        });
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async updatePhoneOtpStatus(user: UpdatePhoneOtpStatus): Promise<string> {
@@ -188,6 +224,7 @@ export class PrismaUserRepository implements IUserRepository {
         if (userVerified) {
           throw new BadRequestError("User is already verified");
         }
+
         const userCreate = await tx.user.upsert({
           where: {
             email: email,
@@ -201,6 +238,13 @@ export class PrismaUserRepository implements IUserRepository {
             email: email,
             firstName: firstName,
             lastName: lastName,
+          },
+          include: {
+            Otp: {
+              select: {
+                id: true,
+              },
+            },
           },
         });
 
@@ -217,6 +261,31 @@ export class PrismaUserRepository implements IUserRepository {
             dietaryPreferences: dietaryPreferences,
           },
         });
+
+        const userOtp = generateOtp();
+        if (userCreate?.Otp) {
+          await tx.otp.update({
+            where: {
+              id: userCreate.Otp?.id,
+            },
+            data: {
+              userId: userCreate.id,
+              expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+              otpType: OtpType.EMAIL_VERIFICATION,
+              otp: String(userOtp),
+            },
+          });
+        } else {
+          await tx.otp.create({
+            data: {
+              userId: userCreate?.id,
+              // expiration time 10 minutes
+              expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
+              otp: String(userOtp),
+              otpType: OtpType.EMAIL_VERIFICATION,
+            },
+          });
+        }
 
         const result = await tx.user.findUnique({
           where: {
