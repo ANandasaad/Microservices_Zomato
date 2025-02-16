@@ -1,12 +1,10 @@
 import config from "../config/config";
+import { publishSmsNotification } from "../providers/SmsNotification.provider";
 import { client } from "./Twilio";
 
 export const sendOtpToPhone = async (phone: number) => {
   try {
-    await client.verify.v2
-      .services(String(config.twilio_Service_sid))
-      .verifications.create({ to: `+91${phone}`, channel: "sms" })
-      .then((verification) => console.log(verification));
+    const response = await publishSmsNotification(phone);
   } catch (error) {
     console.log(error);
     throw error;
