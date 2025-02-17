@@ -1,5 +1,6 @@
 import config from "../config/config";
-import { publishSmsNotification } from "../providers/SmsNotification.provider";
+import { publishSmsNotification } from "../providers/Notification.provider";
+
 import { client } from "./Twilio";
 
 export const sendOtpToPhone = async (phone: number) => {

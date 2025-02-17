@@ -14,6 +14,7 @@ import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import config from "../config/config";
 import { generateOtp } from "../utils/generateOtp";
+import { publishEmailNotification } from "../providers/Notification.provider";
 
 const client = new OAuth2Client(config.web_client_id);
 export class PrismaUserRepository implements IUserRepository {
@@ -295,6 +296,12 @@ export class PrismaUserRepository implements IUserRepository {
             CustomerProfile: true,
           },
         });
+        const payload = {
+          email: String(email),
+          otp: String(userOtp),
+        };
+        await publishEmailNotification(payload);
+
         return result;
       } catch (error) {
         throw error;

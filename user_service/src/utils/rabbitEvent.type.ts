@@ -4,4 +4,5 @@ export const ExchangeName = {
 
 export const EventType = {
   SEND_OTP: "send_otp",
+  EMAIL: "email",
 };
