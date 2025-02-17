@@ -27,6 +27,10 @@ export const consumeNotificationEvent = async () => {
             const notificationService = new NotificationService();
             notificationService.sendSmsNotification(notificationData);
             break;
+          case EventType.EMAIL:
+            const emailNotificationService = new NotificationService();
+            emailNotificationService.sendEmailNotification(notificationData);
+            break;
 
           default:
             console.log("Unknown event: " + notificationData.event);

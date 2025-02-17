@@ -1,9 +1,9 @@
 import config from "../../config";
 import { client } from "../../config/Twilio";
-import { INotification } from "../../interfaces/INotification";
+import { ISmsNotification } from "../../interfaces/INotification";
 
-export class SmsNotifier implements INotification {
-  async sendNotificationPhone(data: any): Promise<void> {
+export class SmsNotifier implements ISmsNotification {
+  async sendSmsNotification(data: any): Promise<void> {
     try {
       console.log("Sending notification", data?.data?.phone);
       await client.verify.v2

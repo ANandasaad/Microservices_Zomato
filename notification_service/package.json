@@ -22,11 +22,13 @@
     "@prisma/client": "^6.3.1",
     "amqplib": "^0.10.5",
     "express": "^4.21.2",
+    "nodemailer": "^6.10.0",
     "twilio": "^5.4.4"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.6",
     "@types/express": "^5.0.0",
+    "@types/nodemailer": "^6.4.17",
     "dotenv": "^16.4.7",
     "prisma": "^6.3.1",
     "ts-node": "^10.9.2",
