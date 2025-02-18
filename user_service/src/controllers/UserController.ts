@@ -1,4 +1,6 @@
 import { CreateUserDto } from "../dtos/createUserDtos";
+import { LoginWithEmailDtos } from "../dtos/LoginDtos";
+import { ResendOtp } from "../dtos/resendOtp";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 import { IAuthService } from "../interfaces/IAuthService";
 import { IUserController } from "../interfaces/IUserController";
@@ -48,6 +50,24 @@ export class UserController implements IUserController {
     }
   }
 
+  async ResendOtp(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData: ResendOtp = req.body;
+      const response = await this.authService.resendOtp(userData);
+      res.status(200).json({
+        success: true,
+        message: "Otp resend successfully",
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async GoogleSignup(
     req: Request,
     res: Response,
@@ -88,4 +108,22 @@ export class UserController implements IUserController {
     res: Response,
     next: NextFunction
   ): Promise<void> {}
+
+  async LoginWithEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData: LoginWithEmailDtos = req.body;
+      const response = await this.authService.loginWithEmail(userData);
+      res.status(200).json({
+        success: true,
+        message: "Login is successful",
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

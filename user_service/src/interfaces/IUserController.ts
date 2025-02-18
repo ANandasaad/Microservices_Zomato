@@ -18,4 +18,10 @@ export interface IUserController {
     res: Response,
     next: NextFunction
   ): Promise<void>;
+  ResendOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+  LoginWithEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void>;
 }

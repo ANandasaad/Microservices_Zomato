@@ -15,6 +15,8 @@ import { OAuth2Client, TokenPayload } from "google-auth-library";
 import config from "../config/config";
 import { generateOtp } from "../utils/generateOtp";
 import { publishEmailNotification } from "../providers/Notification.provider";
+import { ResendOtp, ResendType } from "../dtos/resendOtp";
+import { OtpDataDtos } from "../dtos/LoginDtos";
 
 const client = new OAuth2Client(config.web_client_id);
 export class PrismaUserRepository implements IUserRepository {
@@ -22,9 +24,18 @@ export class PrismaUserRepository implements IUserRepository {
   constructor() {
     this.prisma = new PrismaClient();
   }
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<any | null> {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        Otp: true,
+      },
+    });
+  }
+
+  findOtpByEmailAndOtpType(data: ResendOtp): Promise<any | null> {
+    return this.prisma.user.findUnique({
+      where: { email: data.email },
     });
   }
 
@@ -33,14 +44,46 @@ export class PrismaUserRepository implements IUserRepository {
       where: { phone },
     });
   }
-  findById(id: string): Promise<User | null> {
-    throw new Error("Method not implemented.");
+  findById(id: number): Promise<any | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        Otp: true,
+      },
+    });
   }
-  update(id: string, data: Partial<User>): Promise<User> {
-    throw new Error("Method not implemented.");
+  async update(data: any): Promise<void> {
+    await this.prisma.user.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        failedLoginAttempts: data.failedLoginAttempts,
+      },
+    });
   }
   delete(id: string): Promise<void> {
     throw new Error("Method not implemented.");
+  }
+  async updateOtp(data: ResendType): Promise<any> {
+    try {
+      const update = await this.prisma.otp.update({
+        where: {
+          id: data.id,
+        },
+        data: {
+          otp: data.otp,
+          attemptCount: data.attemptCount,
+          lockUntil: data.lockUntil,
+          otpType: OtpType.EMAIL_VERIFICATION,
+        },
+      });
+      return update;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async createUser(user: CreateUserDto): Promise<User> {
@@ -307,5 +350,22 @@ export class PrismaUserRepository implements IUserRepository {
         throw error;
       }
     });
+  }
+
+  async findByOtpById(data: OtpDataDtos): Promise<any> {
+    try {
+      const result = await this.prisma.otp.findFirst({
+        where: {
+          userId: data.userId,
+          otpType: data.OtpType,
+        },
+      });
+      if (!result) {
+        throw new BadRequestError("Otp not found");
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -1,6 +1,8 @@
 import { User } from "@prisma/client";
 import { CreateUserDto } from "../dtos/createUserDtos";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
+import { ResendOtp } from "../dtos/resendOtp";
+import { LoginWithEmailDtos } from "../dtos/LoginDtos";
 
 export interface IAuthService {
   registerUserByPhoneOrLogin(userData: CreateUserDto): Promise<User>;
@@ -8,4 +10,6 @@ export interface IAuthService {
 
   GoogleSignup(userData: SocialSignupDtos): Promise<any>;
   SignUpWithEmail(userData: SignUpWithEmailDtos): Promise<any>;
+  resendOtp(userData: ResendOtp): Promise<any>;
+  loginWithEmail(userData: LoginWithEmailDtos): Promise<any>;
 }

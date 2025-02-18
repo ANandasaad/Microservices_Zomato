@@ -16,16 +16,14 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  const statusCode = err instanceof HttpError ? err.statusCode : 500;
+  const statusCode = "statusCode" in err ? (err as any).statusCode : 500;
 
   const errorResponse = {
     message: err.message || "Internal Server Error",
     statusCode,
-    errors: err instanceof HttpError ? err.errors : [],
+    errors: "errors" in err ? (err as any).errors : [],
     success: false,
   };
 
   res.status(statusCode).json(errorResponse);
-
-  next();
 };

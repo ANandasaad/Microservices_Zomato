@@ -1,12 +1,11 @@
 export class BadRequestError extends Error {
   statusCode: number;
-  errors?: string[];
 
-  constructor(message: string, error?: string[]) {
+  constructor(message: string) {
+    console.log(message, "message");
     super(message);
     this.name = "BadRequestError";
     this.statusCode = 400;
-    this.errors = error;
   }
 }
 

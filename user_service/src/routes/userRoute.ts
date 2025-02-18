@@ -4,6 +4,7 @@ import { validateDto } from "../middlewares/validation";
 import { CreateUserDto } from "../dtos/createUserDtos";
 import { VerifyPhoneOtp } from "../dtos/verifyPhoneOtp";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
+import { ResendOtp } from "../dtos/resendOtp";
 
 export const UserRoutes = (userController: UserController) => {
   const router = express.Router();
@@ -26,6 +27,11 @@ export const UserRoutes = (userController: UserController) => {
     "/email-signup",
     validateDto(SignUpWithEmailDtos),
     userController.SignUpWithEmail.bind(userController)
+  );
+  router.post(
+    "/resend-otp",
+    validateDto(ResendOtp),
+    userController.ResendOtp.bind(userController)
   );
   return router;
 };
