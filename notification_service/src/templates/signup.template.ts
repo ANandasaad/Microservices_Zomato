@@ -1,9 +1,4 @@
-interface SignupData {
-  email: string;
-  otp: string;
-}
-
-export const SignupTemplate = (data: SignupData) => {
+export const SignupTemplate = (data: any) => {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -58,8 +53,8 @@ export const SignupTemplate = (data: SignupData) => {
     <div class="container">
         <div class="header">Signup Verification</div>
         <p>Hello,</p>
-        <p>Thank you for signing up! Please use the following OTP to verify your email address: ${data.email}</p>
-        <div class="otp">${data.otp}</div>
+        <p>Thank you for signing up! Please use the following OTP to verify your email address: ${data.data.email}</p>
+        <div class="otp">${data.data.otp}</div>
         <p>This OTP will expire in 10 minutes. If you didn’t request this, please ignore this email.</p>
         <p><a href="#" class="button">Verify Email</a></p>
         <div class="footer">© 2025 Your Company. All rights reserved.</div>
