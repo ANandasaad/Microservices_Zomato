@@ -30,10 +30,13 @@ export class AuthMiddleware {
         }
 
         const user = await this.tokenService.verify(token);
+
         if (allowedRoles.length > 0) {
           this.roleService.validateRole(user, allowedRoles);
         }
+
         req.user = user;
+        next();
       } catch (error) {
         next(error);
       }

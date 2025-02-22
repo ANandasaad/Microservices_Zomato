@@ -81,15 +81,21 @@ enum OtpStatus {
   verified
 }
 
+enum GenderType {
+  MALE
+  FEMALE
+}
+
 model User {
-  id                     Int                      @id @default(autoincrement())
-  email                  String?                  @unique
-  phone                  String?                  @unique
-  password               String?
-  firstName              String?
-  lastName               String?
-  profileImage           String?
-  dateOfBirth            DateTime?
+  id           Int       @id @default(autoincrement())
+  email        String?   @unique
+  phone        String?   @unique
+  password     String?
+  firstName    String?
+  lastName     String?
+  profileImage String?
+  dateOfBirth  DateTime?
+
   isActive               Boolean                  @default(true)
   created_at             DateTime                 @default(now())
   updated_at             DateTime                 @updatedAt
@@ -188,6 +194,7 @@ model CustomerProfile {
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             Int         @unique
   dietaryPreferences DietaryType @default(null)
+  Gender             GenderType?
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
   Address            Address[]
