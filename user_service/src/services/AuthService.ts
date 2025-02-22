@@ -10,6 +10,8 @@ import { generateToken } from "../utils/generateToken";
 import { ResendOtp, ResendType } from "../dtos/resendOtp";
 import { generateOtp } from "../utils/generateOtp";
 import { LoginWithEmailDtos, OtpDataDtos } from "../dtos/LoginDtos";
+import prisma from "../config/prisma";
+import { publishEmailNotification } from "../providers/Notification.provider";
 
 export class AuthService implements IAuthService {
   constructor(private userRepository: IUserRepository) {}
@@ -105,25 +107,34 @@ export class AuthService implements IAuthService {
       const userExist = await this.userRepository.findByEmail(
         userData.email as string
       );
+
       if (!userExist) {
         throw new BadRequestError("User does not exist");
       }
       if (userExist.isEmailVerified) {
         throw new BadRequestError("User already verified");
       }
+      if (userExist.Otp.lockUntil && userExist.Otp.lockUntil > new Date()) {
+        throw new BadRequestError(
+          `Resend request attempt exceeded the maximum limit, Try again later in 10 mins`
+        );
+      }
+      if (!userExist.Otp.lockUntil) {
+        await prisma.otp.update({
+          where: {
+            id: userExist.Otp?.id,
+          },
+          data: {
+            attemptCount: 0,
+            lockUntil: null,
+          },
+        });
+      }
       if (userExist?.Otp) {
-        if (userExist.Otp.lockUntil && userExist.Otp.lockUntil > new Date()) {
-          throw new BadRequestError(
-            `Resend request attempt exceeded the maximum limit, Try again later in 10 mins`
-          );
-        }
-
         const userOtp = generateOtp();
 
         let newAttemptCount = (userExist.Otp?.attemptCount || 0) + 1;
-        if (userExist.Otp.lockUntil) {
-          newAttemptCount = 0;
-        }
+
         const payload: ResendType = {
           id: userExist.Otp?.id,
           otp: String(userOtp),
@@ -131,8 +142,19 @@ export class AuthService implements IAuthService {
           lockUntil:
             newAttemptCount >= 3 ? new Date(Date.now() + 10 * 60 * 1000) : null,
         };
-
+        console.log(payload);
         await this.userRepository.updateOtp(payload);
+        const emailPayload = {
+          email: userData.email as string,
+          otp: String(userOtp),
+        };
+        await publishEmailNotification(emailPayload);
+
+        if (newAttemptCount >= 3) {
+          throw new BadRequestError(
+            "Too many failed attempts. Account is locked for 10 minutes."
+          );
+        }
       }
 
       return {};
@@ -143,37 +165,8 @@ export class AuthService implements IAuthService {
 
   async loginWithEmail(userData: LoginWithEmailDtos): Promise<any> {
     try {
-      const { email, otp, OtpType } = userData;
-      const userExist = await this.userRepository.findByEmail(email as string);
-      if (!userExist) {
-        throw new BadRequestError("User not found");
-      }
-      const otpData: OtpDataDtos = {
-        userId: userExist?.id,
-        OtpType: OtpType,
-      };
-      const userOtp = await this.userRepository.findByOtpById(otpData);
-      if (userOtp.expiresAt < new Date()) {
-        throw new BadRequestError("Otp Expired");
-      }
-      if (userOtp.otp !== otp) {
-        if (
-          userExist.accountLockedUntil &&
-          userExist.accountLockedUntil > new Date()
-        ) {
-          throw new BadRequestError("Account is Locked for 10 minutes");
-        }
-        let newAttemptCount = (userExist.failedLoginAttemptCount || 0) + 1;
-
-        if (userExist.accountLockedUntil) {
-          newAttemptCount = 0;
-        }
-        const payload = {
-          id: userExist.id,
-          failedLoginAttemptCount: newAttemptCount,
-        };
-        await this.userRepository.update(payload);
-      }
+      const user = await this.userRepository.loginWithEmail(userData);
+      return user;
     } catch (error) {
       throw error;
     }

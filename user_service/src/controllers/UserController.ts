@@ -4,14 +4,11 @@ import { ResendOtp } from "../dtos/resendOtp";
 import { SignUpWithEmailDtos, SocialSignupDtos } from "../dtos/signupDtos";
 import { IAuthService } from "../interfaces/IAuthService";
 import { IUserController } from "../interfaces/IUserController";
-import { IUserRepository } from "../interfaces/IUserRepository";
+
 import { NextFunction, Request, Response } from "express";
 
 export class UserController implements IUserController {
-  constructor(
-    private authService: IAuthService,
-    private userRepository: IUserRepository
-  ) {}
+  constructor(private authService: IAuthService) {}
 
   async registerByPhoneOrLogin(
     req: Request,

@@ -16,7 +16,8 @@ import config from "../config/config";
 import { generateOtp } from "../utils/generateOtp";
 import { publishEmailNotification } from "../providers/Notification.provider";
 import { ResendOtp, ResendType } from "../dtos/resendOtp";
-import { OtpDataDtos } from "../dtos/LoginDtos";
+import { LoginWithEmailDtos, OtpDataDtos } from "../dtos/LoginDtos";
+import { generateToken } from "../utils/generateToken";
 
 const client = new OAuth2Client(config.web_client_id);
 export class PrismaUserRepository implements IUserRepository {
@@ -54,16 +55,7 @@ export class PrismaUserRepository implements IUserRepository {
       },
     });
   }
-  async update(data: any): Promise<void> {
-    await this.prisma.user.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        failedLoginAttempts: data.failedLoginAttempts,
-      },
-    });
-  }
+
   delete(id: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -80,6 +72,7 @@ export class PrismaUserRepository implements IUserRepository {
           otpType: OtpType.EMAIL_VERIFICATION,
         },
       });
+
       return update;
     } catch (error) {
       throw error;
@@ -367,5 +360,113 @@ export class PrismaUserRepository implements IUserRepository {
     } catch (error) {
       throw error;
     }
+  }
+
+  async loginWithEmail(user: LoginWithEmailDtos): Promise<any> {
+    return this.prisma.$transaction(async (tx) => {
+      try {
+        const userExist = await tx.user.findUnique({
+          where: {
+            email: user.email,
+          },
+          select: {
+            id: true,
+            email: true,
+            failedLoginAttempts: true,
+            accountLockedUntil: true,
+            // ... other needed fields
+          },
+        });
+
+        if (!userExist) {
+          throw new NotFoundError(`User does not exist`);
+        }
+
+        // Check if account is locked - note the changed comparison operator
+        if (
+          userExist.accountLockedUntil &&
+          userExist.accountLockedUntil > new Date()
+        ) {
+          throw new BadRequestError(
+            "Account is locked for 10 minutes, please try again later"
+          );
+        }
+
+        const OtpUser = await tx.otp.findFirst({
+          where: {
+            userId: userExist.id,
+            otpType: user.OtpType,
+          },
+        });
+
+        if (!OtpUser) {
+          throw new NotFoundError("Otp is not available");
+        }
+
+        if (!OtpUser.expiresAt || OtpUser.expiresAt < new Date()) {
+          throw new BadRequestError("Otp Expired, Resend");
+        }
+
+        let token;
+        let userdata;
+        if (OtpUser.otp !== user.otp) {
+          const newAttemptCount = (userExist.failedLoginAttempts || 0) + 1;
+
+          // Update user with new attempt count and potentially lock the account
+          await this.prisma.user.update({
+            where: {
+              id: userExist.id,
+            },
+            data: {
+              failedLoginAttempts: newAttemptCount,
+              accountLockedUntil:
+                newAttemptCount >= 3
+                  ? new Date(Date.now() + 10 * 60 * 1000) // 10 minutes from now
+                  : null,
+            },
+          });
+
+          if (newAttemptCount >= 3) {
+            throw new BadRequestError(
+              "Too many failed attempts. Account is locked for 10 minutes."
+            );
+          } else {
+            throw new BadRequestError("Invalid Otp");
+          }
+        }
+
+        // OTP is valid - reset attempts and lock, update verification
+        userdata = await tx.user.update({
+          where: {
+            id: userExist.id,
+          },
+          data: {
+            accountLockedUntil: null,
+            failedLoginAttempts: 0,
+            isEmailVerified: true,
+          },
+        });
+
+        const payload = {
+          userId: userExist.id,
+        };
+        token = generateToken(payload);
+
+        // Clean up used OTP
+        await tx.otp.delete({
+          where: {
+            userId: userExist.id,
+            otpType: user.OtpType,
+          },
+        });
+
+        return {
+          token: token,
+          user: userdata,
+        };
+      } catch (error) {
+        throw error;
+      }
+    });
   }
 }

@@ -20,10 +20,7 @@ class App {
     this.initializeMiddleware();
     this.userRepository = new PrismaUserRepository();
     this.authService = new AuthService(this.userRepository);
-    this.userController = new UserController(
-      this.authService,
-      this.userRepository
-    );
+    this.userController = new UserController(this.authService);
     this.initializeRoutes();
     this.initializeErrorHandler();
   }
