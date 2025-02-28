@@ -111,7 +111,7 @@ model User {
   vehicleType            String?
   Session                Session[]
   Otp                    Otp?
-  CustomerProfile        CustomerProfile[]
+  CustomerProfile        CustomerProfile?
   DeviceToken            DeviceToken[]
   DeliveryPartnerProfile DeliveryPartnerProfile[]
   RestaurantProfile      RestaurantProfile[]
@@ -146,7 +146,7 @@ model Address {
   latitude          Float?
   longitude         Float?
   isDefault         Boolean         @default(false)
-  customerProfileId Int
+  customerProfileId Int             @unique
   created_at        DateTime        @default(now())
   updated_at        DateTime        @updatedAt
 }

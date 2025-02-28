@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   user_service:
@@ -7,19 +7,41 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "4000:4000"
+      - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://postgres:admin@db:5432/zomato
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - db
     networks:
-      - zomato_net 
+      - zomato_network
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
 
-  db:  # This should be correctly indented
-    container_name: zomato_db
-    image: postgres:15
+  pgadmin:
+    container_name: zomato_pgadmin
+    image: dpage/pgadmin4
     restart: always
-    environment: 
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    networks:
+      - zomato_network
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_zomato
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - zomato_network
+
+  db: # This should be correctly indented
+    container_name: zomato_db
+    image: postgres
+    restart: always
+    environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: zomato
@@ -28,10 +50,10 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
-      - zomato_net 
+      - zomato_network
 
 networks:
-  zomato_net:
+  zomato_network:
     driver: bridge
 
 volumes:

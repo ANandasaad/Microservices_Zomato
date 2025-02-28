@@ -9,6 +9,10 @@ import { UserProfileService } from "./services/UserProfileService";
 import { UserProfileController } from "./controllers/UserProfileController";
 import { PrismaUserProfileRepository } from "./repositories/PrismaUserProfileRepository";
 import { UserProfileRoutes } from "./routes/userProfileRoute";
+import { PrismaAddressRepository } from "./repositories/PrismaAddressRepository";
+import { AddressService } from "./services/AddressService";
+import { AddressController } from "./controllers/AddressController";
+import { AddressRoutes } from "./routes/addressRoutes";
 
 const PORT = config.port || 4000;
 
@@ -21,20 +25,26 @@ class App {
   private userProfileController: UserProfileController;
   private userProfileService: UserProfileService;
   private userProfileRepository: PrismaUserProfileRepository;
+  private addressRepository: PrismaAddressRepository;
+  private addressService: AddressService;
+  private addressController: AddressController;
 
   constructor() {
     this.app = express();
     this.initializeMiddleware();
     this.userRepository = new PrismaUserRepository();
     this.userProfileRepository = new PrismaUserProfileRepository();
+    this.addressRepository = new PrismaAddressRepository();
     this.authService = new AuthService(this.userRepository);
     this.userProfileService = new UserProfileService(
       this.userProfileRepository
     );
+    this.addressService = new AddressService(this.addressRepository);
     this.userController = new UserController(this.authService);
     this.userProfileController = new UserProfileController(
       this.userProfileService
     );
+    this.addressController = new AddressController(this.addressService);
     this.initializeRoutes();
     this.initializeErrorHandler();
   }
@@ -46,9 +56,11 @@ class App {
   private initializeRoutes() {
     const userRoutes = UserRoutes(this.userController);
     const userProfileRoutes = UserProfileRoutes(this.userProfileController);
+    const addressRoutes = AddressRoutes(this.addressController);
 
     this.app.use("/api/v1/user", userRoutes);
     this.app.use("/api/v1/user/profile", userProfileRoutes);
+    this.app.use("/api/v1/address", addressRoutes);
   }
   private initializeErrorHandler() {
     this.app.use(errorHandler);
