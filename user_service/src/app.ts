@@ -13,6 +13,9 @@ import { PrismaAddressRepository } from "./repositories/PrismaAddressRepository"
 import { AddressService } from "./services/AddressService";
 import { AddressController } from "./controllers/AddressController";
 import { AddressRoutes } from "./routes/addressRoutes";
+import { AuthController } from "./controllers/AuthController";
+import { JwtTokenService } from "./services/JwtTokenService";
+import { AuthVerify } from "./routes/auth";
 
 const PORT = config.port || 4000;
 
@@ -28,6 +31,8 @@ class App {
   private addressRepository: PrismaAddressRepository;
   private addressService: AddressService;
   private addressController: AddressController;
+  private authController: AuthController;
+  private tokenService: JwtTokenService;
 
   constructor() {
     this.app = express();
@@ -44,7 +49,9 @@ class App {
     this.userProfileController = new UserProfileController(
       this.userProfileService
     );
+    this.tokenService = new JwtTokenService(config.jwtSecret as string);
     this.addressController = new AddressController(this.addressService);
+    this.authController = new AuthController(this.tokenService);
     this.initializeRoutes();
     this.initializeErrorHandler();
   }
@@ -57,10 +64,12 @@ class App {
     const userRoutes = UserRoutes(this.userController);
     const userProfileRoutes = UserProfileRoutes(this.userProfileController);
     const addressRoutes = AddressRoutes(this.addressController);
+    const authRoutes = AuthVerify(this.authController);
 
     this.app.use("/api/v1/user", userRoutes);
     this.app.use("/api/v1/user/profile", userProfileRoutes);
     this.app.use("/api/v1/address", addressRoutes);
+    this.app.use("/api/v1/auth", authRoutes);
   }
   private initializeErrorHandler() {
     this.app.use(errorHandler);
