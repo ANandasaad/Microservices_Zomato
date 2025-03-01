@@ -1,0 +1,33 @@
+{
+  "name": "resturant_service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./dist/app.js",
+    "dev": "ts-node ./src/app.ts",
+    "dev:watch": "nodemon",
+    "build": "tsc",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:studio": "npx prisma studio",
+    "prisma:push": "npx prisma db push",
+    "prisma:pull": "npx prisma db pull"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.4.1",
+    "@types/express": "^5.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "prisma": "^6.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}
