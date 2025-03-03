@@ -15,4 +15,17 @@ export class RestaurantService implements IRestaurantService {
       throw error;
     }
   }
+
+  async getRestaurants(): Promise<any> {
+    try {
+      const restaurant = await this.restaurantRepository.getRestaurants();
+      return restaurant;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateRestaurant(): Promise<any> {
+    try {
+    } catch (error) {}
+  }
 }

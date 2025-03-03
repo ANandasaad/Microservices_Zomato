@@ -14,7 +14,7 @@ datasource db {
 }
 
 model Restaurant {
-  id             Int       @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   name           String
   description    String?
   address        String?
@@ -24,7 +24,7 @@ model Restaurant {
   postalCode     String?
   latitude       Float?
   longitude      Float?
-  isOpen         Boolean   @default(false)
+  isOpen         Boolean          @default(false)
   discount       String?
   discountAmount String?
   time           String?
@@ -32,6 +32,40 @@ model Restaurant {
   image          String?
   openTime       DateTime?
   closedTime     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  RestaurantItem RestaurantItem[]
+}
+
+model RestaurantItem {
+  id             Int        @id @default(autoincrement())
+  name           String?
+  description    String?
+  image          String?
+  isCustomizable Boolean    @default(false)
+  price          Float      @default(0.0)
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id])
+  isVeg          Boolean    @default(true)
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+  restaurantId   Int
+}
+
+model Customizable {
+  id         Int      @id @default(autoincrement())
+  type       String?
+  required   Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Option     Option[]
+}
+
+model Option {
+  id             Int          @id @default(autoincrement())
+  name           String?
+  price          Float        @default(0.0)
+  customizable   Customizable @relation(fields: [customizableId], references: [id])
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  customizableId Int
 }
