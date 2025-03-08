@@ -1,6 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { IPrismaRestaurantRepository } from "../interface/IPrismaResturantRepository";
-import { AddRestaurantDtos } from "../dtos/RestaurantDtos";
+import {
+  AddRestaurantDtos,
+  getRestaurantByIdDtos,
+} from "../dtos/RestaurantDtos";
 import { BadRequestError, NotFoundError } from "../utils/error";
 
 export class PrismaRestaurantRepository implements IPrismaRestaurantRepository {
@@ -41,6 +44,25 @@ export class PrismaRestaurantRepository implements IPrismaRestaurantRepository {
         throw new NotFoundError("Restaurants not found");
       }
       return restaurants;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRestaurantById(restaurantId: getRestaurantByIdDtos): Promise<any> {
+    try {
+      const restaurant = await this.prisma.restaurant.findUnique({
+        where: {
+          id: Number(restaurantId?.id),
+        },
+        include: {
+          RestaurantItem: true,
+        },
+      });
+      if (!restaurant) {
+        throw new NotFoundError("Restaurant not found");
+      }
+      return restaurant;
     } catch (error) {
       throw error;
     }

@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { IRestaurantController } from "../interface/IRestaurantController";
 import { IRestaurantService } from "../interface/IRestaurantService";
-import { AddRestaurantDtos } from "../dtos/RestaurantDtos";
+import {
+  AddRestaurantDtos,
+  getRestaurantByIdDtos,
+} from "../dtos/RestaurantDtos";
 
 export class RestaurantController implements IRestaurantController {
   constructor(private restaurantService: IRestaurantService) {}
@@ -34,6 +37,25 @@ export class RestaurantController implements IRestaurantController {
   ): Promise<void> {
     try {
       const response = await this.restaurantService.getRestaurants();
+      res.status(200).json({
+        success: true,
+        message: "Restaurants successfully",
+        data: response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getRestaurantById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const restaurantId: getRestaurantByIdDtos = req.params;
+      const response = await this.restaurantService.getRestaurantById(
+        restaurantId
+      );
       res.status(200).json({
         success: true,
         message: "Restaurants successfully",

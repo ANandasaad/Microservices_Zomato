@@ -9,7 +9,7 @@ export class AuthMiddleware {
       try {
         const userRoles =
           req.headers["x-user-roles"]?.toString().split(",") || [];
-        console.log(userRoles, "userRoles");
+
         if (allowedRoles.length > 0) {
           this.roleService.validateRole(allowedRoles, userRoles);
         }

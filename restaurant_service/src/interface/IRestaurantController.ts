@@ -12,4 +12,10 @@ export interface IRestaurantController {
     res: Response,
     next: NextFunction
   ): Promise<void>;
+
+  getRestaurantById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void>;
 }

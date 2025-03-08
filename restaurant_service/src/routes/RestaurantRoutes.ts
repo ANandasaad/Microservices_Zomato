@@ -19,6 +19,11 @@ export const RestaurantRoutes = (
     customerAuth,
     restaurantController.getRestaurants.bind(restaurantController)
   );
+  router.get(
+    "/:id",
+    customerAuth,
+    restaurantController.getRestaurantById.bind(restaurantController)
+  );
 
   return router;
 };

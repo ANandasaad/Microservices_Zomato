@@ -1,4 +1,7 @@
-import { AddRestaurantDtos } from "../dtos/RestaurantDtos";
+import {
+  AddRestaurantDtos,
+  getRestaurantByIdDtos,
+} from "../dtos/RestaurantDtos";
 import { IPrismaRestaurantRepository } from "../interface/IPrismaResturantRepository";
 import { IRestaurantService } from "../interface/IRestaurantService";
 
@@ -19,6 +22,16 @@ export class RestaurantService implements IRestaurantService {
   async getRestaurants(): Promise<any> {
     try {
       const restaurant = await this.restaurantRepository.getRestaurants();
+      return restaurant;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getRestaurantById(restaurantId: getRestaurantByIdDtos): Promise<any> {
+    try {
+      const restaurant = await this.restaurantRepository.getRestaurantById(
+        restaurantId
+      );
       return restaurant;
     } catch (error) {
       throw error;

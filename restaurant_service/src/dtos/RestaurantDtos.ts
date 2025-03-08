@@ -40,3 +40,8 @@ export class AddRestaurantDtos {
   @IsString()
   image?: string;
 }
+
+export class getRestaurantByIdDtos {
+  @IsString()
+  id?: string;
+}
