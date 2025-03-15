@@ -5,6 +5,10 @@ import { RestaurantController } from "./controllers/RestaurantController";
 import { errorHandler } from "./middleware/errorHandler";
 import config from "./config/config";
 import { RestaurantRoutes } from "./routes/RestaurantRoutes";
+import { RestaurantItemService } from "./services/RestaurantItem.service";
+import { RestaurantItemController } from "./controllers/RestaurantItem.controller";
+import { RestaurantItemRepository } from "./repositories/RestaurantItem.respository";
+import { RestaurantItemRoutes } from "./routes/RestaurantItem.routes";
 const PORT = config.port || 4002;
 
 class App {
@@ -12,12 +16,22 @@ class App {
   private restaurantRepository: PrismaRestaurantRepository;
   private restaurantService: RestaurantService;
   private restaurantController: RestaurantController;
+  private restaurantItemService: RestaurantItemService;
+  private restaurantItemController: RestaurantItemController;
+  private restaurantItemRepository: RestaurantItemRepository;
 
   constructor() {
     this.app = express();
     this.initializeMiddleware();
     this.restaurantRepository = new PrismaRestaurantRepository();
+    this.restaurantItemRepository = new RestaurantItemRepository();
     this.restaurantService = new RestaurantService(this.restaurantRepository);
+    this.restaurantItemService = new RestaurantItemService(
+      this.restaurantItemRepository
+    );
+    this.restaurantItemController = new RestaurantItemController(
+      this.restaurantItemService
+    );
     this.restaurantController = new RestaurantController(
       this.restaurantService
     );
@@ -31,7 +45,12 @@ class App {
   }
   private initializeRoutes() {
     const restaurantRoutes = RestaurantRoutes(this.restaurantController);
+    const restaurantItemRoutes = RestaurantItemRoutes(
+      this.restaurantItemController
+    );
+
     this.app.use("/api/v1/restaurant/", restaurantRoutes);
+    this.app.use("/api/v1/restaurant-item", restaurantItemRoutes);
   }
   private initializeErrorHandler() {
     this.app.use(errorHandler);
